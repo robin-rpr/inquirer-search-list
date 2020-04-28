@@ -1,6 +1,6 @@
 # inquirer-search-list
 
-![](screenshot.png)
+![](preview.gif)
 
 ### Install
 

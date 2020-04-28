@@ -26,7 +26,7 @@ function renderChoices(choices: Item[], pointer: number) {
 	choices.forEach(function(choice, i) {
 			var isSelected = i === pointer;
 			output += isSelected ? chalk.cyan(figures.pointer) : " ";
-			output += `${choice.name}`;
+			output += ` ${isSelected ? chalk.cyan(choice.name) : choice.name}`;
 
 		output += "\n";
 	});
@@ -108,7 +108,7 @@ class SearchBox extends Base {
 
 	onEnd(state: any) {
 		this.status = "answered";
-                this.selected = state.value;
+                this.selected = this.list[this.pointer].value;
 		// Rerender prompt (and clean subline error)
 		this.render();
 
@@ -127,7 +127,7 @@ class SearchBox extends Base {
 	}
 
 	getCurrentValue() {
-		return this.list.map(item => item.value);
+		return this.list[this.pointer].value
 	}
 
 	_run(cb: any) {
