@@ -1,13 +1,13 @@
 "use strict";
-var inquirer = require("inquirer");
+const inquirer = require("inquirer");
 inquirer.registerPrompt("search-checkbox", require("../dist"));
 
 inquirer
 	.prompt([
 		{
-			type: "search-checkbox",
-			message: "Select toppings",
-			name: "toppings",
+			type: "search-list",
+			message: "Select topping",
+			name: "topping",
 			choices: [
 				{
 					name: "Pepperoni"
@@ -23,11 +23,14 @@ inquirer
 				},
 				{
 					name: "Mozzarella"
-				}
+				},
+                                {
+                                        name: "Bottle"
+                                }
 			],
 			validate: function(answer) {
-				if (answer.length < 1) {
-					return "You must choose at least one topping.";
+				if (answer === 'Bottle') {
+					return `Whoops, ${answer} is not a real topping.`;
 				}
 				return true;
 			}

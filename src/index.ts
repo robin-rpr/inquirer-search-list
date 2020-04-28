@@ -14,31 +14,19 @@ interface Event {
 	value: string;
 }
 
-interface Choice extends Base.Choice {
+interface Item extends Base.Item {
 	id: number;
 }
 
 const ignoreKeys = ["up", "down", "space"];
 
-function getCheckbox(checked: boolean) {
-	return checked ? chalk.green(figures.radioOn) : figures.radioOff;
-}
-
-function isSeparator(c: Base.Choice) {
-	return c.type === "separator";
-}
-
-function renderChoices(choices: Choice[], pointer: number) {
+function renderChoices(choices: Item[], pointer: number) {
 	var output = "";
 
 	choices.forEach(function(choice, i) {
-		if (choice.disabled) {
-			output = `${output} - ${choice.name} (Disabled)`;
-		} else {
 			var isSelected = i === pointer;
 			output += isSelected ? chalk.cyan(figures.pointer) : " ";
-			output += getCheckbox(choice.checked) + " " + choice.name;
-		}
+			output += `${choice.name}`;
 
 		output += "\n";
 	});
@@ -48,10 +36,11 @@ function renderChoices(choices: Choice[], pointer: number) {
 
 class SearchBox extends Base {
 	private pointer: number = 0;
-	private selection: string[] = [];
-	private done: (state: any) => void;
-	private choices: Choice[] = [];
-	private filterList: Choice[] = [];
+	private selected: string = '';
+	// @ts-ignore
+        private done: (state: any) => void;
+	private list: Item[] = [];
+	private filterList: Item[] = [];
 	private paginator: Paginator = new Paginator();
 
 	constructor(...params: any[]) {
@@ -62,12 +51,7 @@ class SearchBox extends Base {
 			this.throwParamError("choices");
 		}
 
-		const item = choices.find(c => isSeparator(c));
-		if (item) {
-			throw new Error("Separator is not allowed in choices.");
-		}
-
-		this.filterList = this.choices = choices
+		this.filterList = this.list = choices
 			.filter(() => true) // fix slice is not a function
 			.map((item, id) => ({ ...item, id }));
 	}
@@ -80,7 +64,7 @@ class SearchBox extends Base {
 
 		// Render choices or answer depending on the state
 		if (this.status === "answered") {
-			message += chalk.cyan(this.selection.join(", "));
+			message += chalk.cyan(this.selected);
 		} else {
 			message += `${tip} ${this.rl.line}`;
 			const choicesStr = renderChoices(this.filterList, this.pointer);
@@ -100,23 +84,10 @@ class SearchBox extends Base {
 
 	filterChoices() {
 		const options = {
-			extract: (el: Choice) => el.name
+			extract: (el: Item) => el.name
 		};
 
-		this.filterList = fuzzy.filter(this.rl.line, this.choices, options).map(el => el.original);
-	}
-
-	toggleChoice(index: number) {
-		const item = this.filterList[index];
-		if (item) {
-			this.choices[item.id].checked = !item.checked;
-		}
-	}
-
-	onSpaceKey() {
-		this.rl.line = this.rl.line.trim(); // remove space from input
-		this.toggleChoice(this.pointer);
-		this.render();
+		this.filterList = fuzzy.filter(this.rl.line, this.list, options).map(el => el.original);
 	}
 
 	onDownKey() {
@@ -132,11 +103,7 @@ class SearchBox extends Base {
 	}
 
 	onAllKey() {
-		const existCancel = this.filterList.find(item => !item.checked);
-		this.filterList.forEach(item => {
-			this.choices[item.id].checked = !!existCancel;
-		});
-		this.render();
+            this.render();
 	}
 
 	onEnd(state: any) {
@@ -160,12 +127,7 @@ class SearchBox extends Base {
 	}
 
 	getCurrentValue() {
-		const choices = this.choices.filter(
-			item => item.checked && !item.disabled
-		);
-
-		this.selection = choices.map(item => item.short);
-		return choices.map(item => item.value);
+		return this.list.map(item => item.value);
 	}
 
 	_run(cb: any) {
@@ -192,9 +154,6 @@ class SearchBox extends Base {
 		upKey.forEach(this.onUpKey.bind(this));
 		downKey.forEach(this.onDownKey.bind(this));
 		allKey.takeUntil(validation.success).forEach(this.onAllKey.bind(this));
-		events.spaceKey
-			.takeUntil(validation.success)
-			.forEach(this.onSpaceKey.bind(this));
 		events.keypress
 			.filter(
 				(e: Event) => !e.key.ctrl && !ignoreKeys.includes(e.key.name)

@@ -1,7 +1,7 @@
 {
-  "name": "inquirer-search-checkbox",
-  "version": "1.0.0",
-  "description": "Searchable Inquirer checkbox",
+  "name": "inquirer-search-list",
+  "version": "1.0.2",
+  "description": "Searchable Inquirer list",
   "main": "dist/index.js",
   "scripts": {
     "start": "tsc -w",

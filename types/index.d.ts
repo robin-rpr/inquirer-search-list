@@ -5,7 +5,7 @@ declare module "inquirer/lib/prompts/base" {
 
 	class Base {
 		opt: {
-			choices: Base.Choice[];
+			choices: Base.Item[];
 			pageSize: number;
 		};
 		rl: {
@@ -32,14 +32,9 @@ declare module "inquirer/lib/prompts/base" {
 			error: any;
 		}
 
-		export interface Choice {
+		export interface Item {
 			name: string;
-			type: string;
-			short: string;
 			value: string;
-			line: string;
-			disabled: boolean;
-			checked: boolean;
 		}
 	}
 }

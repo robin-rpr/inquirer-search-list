@@ -1,17 +1,17 @@
-## inquirer-search-checkbox
+# inquirer-search-list
 
 ![](screenshot.png)
 
 ### Install
 
 ```
-$ yarn add inquirer-search-checkbox
+$ npm i inquirer-search-list
 ```
 
 ### Usage
 
 ```js
-inquirer.registerPrompt('search-checkbox', require('inquirer-search-checkbox'));
+inquirer.registerPrompt('search-list', require('inquirer-search-list'));
 ```
 
-See [examples](https://github.com/clinyong/inquirer-search-checkbox/tree/master/examples) for detail.
+See [examples](https://github.com/robin-rpr/inquirer-search-list/blob/master/examples/) for detail.
