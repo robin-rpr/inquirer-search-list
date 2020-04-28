@@ -60,7 +60,7 @@ class SearchBox extends Base {
 		// Render question
 		var message = this.getQuestion();
 		var bottomContent = "";
-		const tip = chalk.dim("(Press <space> to select, <enter> to submit.)");
+		const tip = chalk.dim("(Press <enter> to submit)");
 
 		// Render choices or answer depending on the state
 		if (this.status === "answered") {
@@ -108,7 +108,7 @@ class SearchBox extends Base {
 
 	onEnd(state: any) {
 		this.status = "answered";
-
+                this.selected = state.value;
 		// Rerender prompt (and clean subline error)
 		this.render();
 
