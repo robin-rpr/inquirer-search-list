@@ -36,7 +36,7 @@ function renderChoices(choices: Item[], pointer: number) {
 
 class SearchBox extends Base {
 	private pointer: number = 0;
-	private selected: string = '';
+	private selected: string | undefined = '';
 	// @ts-ignore
         private done: (state: any) => void;
 	private list: Item[] = [];
@@ -64,7 +64,7 @@ class SearchBox extends Base {
 
 		// Render choices or answer depending on the state
 		if (this.status === "answered") {
-			message += chalk.cyan(this.selected);
+			message += chalk.cyan(this.selected ? this.selected : '');
 		} else {
 			message += `${tip} ${this.rl.line}`;
 			const choicesStr = renderChoices(this.filterList, this.pointer);
@@ -108,7 +108,9 @@ class SearchBox extends Base {
 
 	onEnd(state: any) {
 		this.status = "answered";
-                this.selected = this.list[this.pointer].value;
+                if(this.getCurrentValue()) {
+                    this.selected = this.getCurrentValue()
+                }
 		// Rerender prompt (and clean subline error)
 		this.render();
 
@@ -127,7 +129,11 @@ class SearchBox extends Base {
 	}
 
 	getCurrentValue() {
+            if(this.filterList.length) {
+                return this.filterList[this.pointer].value
+            } else {
 		return this.list[this.pointer].value
+            }
 	}
 
 	_run(cb: any) {
