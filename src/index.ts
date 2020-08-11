@@ -36,7 +36,7 @@ function renderChoices(choices: Item[], pointer: number) {
 
 class SearchBox extends Base {
 	private pointer: number = 0;
-	private selected: string | undefined = '';
+	private selected: string |undefined = '';
 	// @ts-ignore
         private done: (state: any) => void;
 	private list: Item[] = [];
@@ -108,8 +108,8 @@ class SearchBox extends Base {
 
 	onEnd(state: any) {
 		this.status = "answered";
-                if(this.getCurrentValue()) {
-                    this.selected = this.getCurrentValue()
+                if(this.getCurrentItemName()) {
+                    this.selected = this.getCurrentItemName()
                 }
 		// Rerender prompt (and clean subline error)
 		this.render();
@@ -128,18 +128,26 @@ class SearchBox extends Base {
 		this.render();
 	}
 
-	getCurrentValue() {
-            if(this.filterList.length) {
-                return this.filterList[this.pointer].value
-            } else {
-		return this.list[this.pointer].value
-            }
-	}
+	getCurrentItem() {
+    if(this.filterList.length) {
+        return this.filterList[this.pointer]
+    } else {
+		  return this.list[this.pointer]
+    }
+  }
+
+  getCurrentItemValue() {
+    return this.getCurrentItem().value
+  }
+
+  getCurrentItemName(){
+    return this.getCurrentItem().name
+  }
 
 	_run(cb: any) {
 		this.done = cb;
 
-		const events = observe(this.rl);
+    const events = observe(this.rl);
 		const upKey = events.keypress.filter(
 			(e: Event) =>
 				e.key.name === "up" || (e.key.name === "p" && e.key.ctrl)
@@ -152,7 +160,7 @@ class SearchBox extends Base {
 			(e: Event) => e.key.name === "o" && e.key.ctrl
 		);
 		const validation = this.handleSubmitEvents(
-			events.line.map(this.getCurrentValue.bind(this))
+			events.line.map(this.getCurrentItemValue.bind(this))
 		);
 
 		validation.success.forEach(this.onEnd.bind(this));
