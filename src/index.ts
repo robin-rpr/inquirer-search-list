@@ -4,6 +4,7 @@ import figures = require("figures");
 import Paginator = require("inquirer/lib/utils/paginator");
 import chalk from "chalk";
 import * as fuzzy from "fuzzy";
+import * as Inquirer from "inquirer";
 
 interface Event {
 	key: {
@@ -14,20 +15,35 @@ interface Event {
 	value: string;
 }
 
+// renderer is used to _display_ a row
+type Renderer = (item: Item, isSelected: boolean) => string;
+// filterer is used to _fuzzy search_ a row
+// it's separate from renderer so you can search for non-visible text!
+type Filterer = (item: Item, query: string) => boolean;
+
 interface Item extends Base.Item {
 	id: number;
 }
 
 const ignoreKeys = ["up", "down", "space"];
 
-function renderChoices(choices: Item[], pointer: number) {
+function defaultFilterRow(choice: Item, query: string) {
+  return fuzzy.test(query, choice.name);
+};
+
+function defaultRenderRow(choice: Item, isSelected: boolean) {
+  if(isSelected) {
+    return `${chalk.cyan(figures.pointer)}${chalk.cyan(choice.name)}`;
+  } else {
+    return ` ${choice.name}`;
+  }
+}
+
+function renderChoices(renderRow: Renderer, choices: Item[], pointer: number) {
 	var output = "";
 
 	choices.forEach(function(choice, i) {
-			var isSelected = i === pointer;
-			output += isSelected ? chalk.cyan(figures.pointer) : " ";
-			output += ` ${isSelected ? chalk.cyan(choice.name) : choice.name}`;
-
+  	output += renderRow(choice, i === pointer);
 		output += "\n";
 	});
 
@@ -42,14 +58,19 @@ class SearchBox extends Base {
 	private list: Item[] = [];
 	private filterList: Item[] = [];
 	private paginator: Paginator = new Paginator();
+  private renderRow: Renderer;
+  private filterRow: Filterer;
 
-	constructor(...params: any[]) {
+	constructor(...params: Inquirer.Question[]) {
 		super(...params);
-		const { choices } = this.opt;
+		const { choices, renderRow, filterRow } = this.opt;
 
 		if (!choices) {
 			this.throwParamError("choices");
 		}
+
+  	renderRow ? this.renderRow = renderRow : this.renderRow = defaultRenderRow;
+  	filterRow ? this.filterRow = filterRow : this.filterRow = defaultFilterRow;
 
 		this.filterList = this.list = choices
 			.filter(() => true) // fix slice is not a function
@@ -67,7 +88,7 @@ class SearchBox extends Base {
 			message += chalk.cyan(this.selected ? this.selected : '');
 		} else {
 			message += `${tip} ${this.rl.line}`;
-			const choicesStr = renderChoices(this.filterList, this.pointer);
+			const choicesStr = renderChoices(this.renderRow, this.filterList, this.pointer);
 			bottomContent = this.paginator.paginate(
 				choicesStr,
 				this.pointer,
@@ -83,11 +104,7 @@ class SearchBox extends Base {
 	}
 
 	filterChoices() {
-		const options = {
-			extract: (el: Item) => el.name
-		};
-
-		this.filterList = fuzzy.filter(this.rl.line, this.list, options).map(el => el.original);
+		this.filterList = this.list.filter((choice) => this.filterRow(choice, this.rl.line));
 	}
 
 	onDownKey() {

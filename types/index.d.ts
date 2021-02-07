@@ -7,6 +7,8 @@ declare module "inquirer/lib/prompts/base" {
 		opt: {
 			choices: Base.Item[];
 			pageSize: number;
+      renderRow: (item: Base.Item, isSelected: boolean) => string;
+      filterRow: (item: Base.Item, query: string) => boolean;
 		};
 		rl: {
 			line: string;
