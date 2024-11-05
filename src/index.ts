@@ -25,7 +25,7 @@ interface Item extends Base.Item {
 	id: number;
 }
 
-const ignoreKeys = ["up", "down", "space"];
+const ignoreKeys = ["up", "down"];
 
 function defaultFilterRow(choice: Item, query: string) {
   return fuzzy.test(query, choice.name);
